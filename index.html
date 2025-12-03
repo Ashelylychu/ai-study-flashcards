@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coquette AI Flashcards</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Quicksand:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color1: #FEEAC9;
+            --color2: #FFCDC9;
+            --color3: #FDACAC;
+            --color4: #FD7979;
+            --shadow: rgba(253, 121, 121, 0.2);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background: linear-gradient(135deg, var(--color1) 0%, var(--color2) 50%, var(--color3) 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #5a4a4a;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+        }
+        
+        h1 {
+            font-family: 'Dancing Script', cursive;
+            font-size: 3.5rem;
+            color: var(--color4);
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px var(--shadow);
+        }
+        
+        .subtitle {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2rem;
+            color: #8a6a6a;
+            font-style: italic;
+            margin-bottom: 20px;
+        }
+        
+        .decorations {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 20px 0;
+        }
+        
+        .bow, .star {
+            font-size: 1.8rem;
+            color: var(--color4);
+            opacity: 0.7;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        .bow:nth-child(2), .star:nth-child(3) {
+            animation-delay: 0.5s;
+        }
+        
+        .bow:nth-child(4) {
+            animation-delay: 1s;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .category-btn {
+            background: var(--color4);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-family: 'Quicksand', sans-serif;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px var(--shadow);
+        }
+        
+        .category-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px var(--shadow);
+        }
+        
+        .category-btn.active {
+            background: white;
+            color: var(--color4);
+            box-shadow: 0 0 0 2px var(--color4);
+        }
+        
+        .flashcard-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+        
+        .flashcard {
+            width: 90%;
+            max-width: 700px;
+            height: 350px;
+            perspective: 1000px;
+            margin-bottom: 30px;
+        }
+        
+        .flashcard-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.8s;
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+        
+        .flashcard.flipped .flashcard-inner {
+            transform: rotateY(180deg);
+        }
+        
+        .flashcard-front, .flashcard-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 25px;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 15px 35px var(--shadow);
+        }
+        
+        .flashcard-front {
+            background: linear-gradient(45deg, white, var(--color1));
+            border: 2px dashed var(--color3);
+        }
+        
+        .flashcard-back {
+            background: linear-gradient(45deg, var(--color2), var(--color1));
+            transform: rotateY(180deg);
+            border: 2px solid var(--color4);
+        }
+        
+        .question {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #5a4a4a;
+        }
+        
+        .answer {
+            font-size: 1.3rem;
+            line-height: 1.6;
+            color: #5a4a4a;
+        }
+        
+        .category-tag {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--color4);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .hint {
+            position: absolute;
+            bottom: 20px;
+            font-size: 0.9rem;
+            color: var(--color4);
+            font-style: italic;
+        }
+        
+        .navigation {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .nav-btn {
+            background: white;
+            border: 2px solid var(--color4);
+            color: var(--color4);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px var(--shadow);
+        }
+        
+        .nav-btn:hover {
+            background: var(--color4);
+            color: white;
+            transform: scale(1.1);
+        }
+        
+        .counter {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2rem;
+            color: var(--color4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .progress-bar {
+            width: 200px;
+            height: 8px;
+            background: white;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 0 10px;
+        }
+        
+        .progress {
+            height: 100%;
+            background: var(--color4);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px dashed var(--color3);
+            color: #8a6a6a;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            .flashcard {
+                height: 400px;
+            }
+            
+            .question {
+                font-size: 1.5rem;
+            }
+            
+            .answer {
+                font-size: 1.1rem;
+            }
+            
+            .controls {
+                gap: 10px;
+            }
+            
+            .category-btn {
+                padding: 8px 15px;
+                font-size: 0.9rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .flashcard {
+                height: 450px;
+            }
+            
+            .flashcard-front, .flashcard-back {
+                padding: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="decorations">
+                <div class="bow">🎀</div>
+                <div class="star">✨</div>
+                <div class="star">⭐</div>
+                <div class="bow">💝</div>
+            </div>
+            
+            <h1>Coquette AI Flashcards</h1>
+            <div class="subtitle">Study your Digital Health & AI exam in style</div>
+            
+            <div class="decorations">
+                <div class="star">🌟</div>
+                <div class="bow">💗</div>
+                <div class="star">💫</div>
+            </div>
+        </header>
+        
+        <div class="controls">
+            <button class="category-btn active" data-category="all">All Flashcards</button>
+            <button class="category-btn" data-category="ai">AI & ML Basics</button>
+            <button class="category-btn" data-category="evaluation">Model Evaluation</button>
+            <button class="category-btn" data-category="sensors">Sensors & Devices</button>
+            <button class="category-btn" data-category="digital">Digital Health</button>
+            <button class="category-btn" data-category="llm">LLMs & Chatbots</button>
+            <button class="category-btn" data-category="rehab">Rehabilitation</button>
+        </div>
+        
+        <div class="flashcard-container">
+            <div class="flashcard" id="flashcard">
+                <div class="flashcard-inner">
+                    <div class="flashcard-front">
+                        <div class="category-tag" id="categoryTag">AI & ML Basics</div>
+                        <div class="question" id="question">What is the key difference between supervised and unsupervised learning?</div>
+                        <div class="hint">Click to flip for answer</div>
+                    </div>
+                    <div class="flashcard-back">
+                        <div class="category-tag" id="categoryTagBack">AI & ML Basics</div>
+                        <div class="answer" id="answer">Supervised learning uses labeled data with known outputs; unsupervised learning finds patterns in unlabeled data without predefined outcomes.</div>
+                        <div class="hint">Click to flip back</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="navigation">
+                <button class="nav-btn" id="prevBtn">←</button>
+                
+                <div class="counter">
+                    <span id="currentCard">1</span> / <span id="totalCards">50</span>
+                    <div class="progress-bar">
+                        <div class="progress" id="progress"></div>
+                    </div>
+                </div>
+                
+                <button class="nav-btn" id="nextBtn">→</button>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Made with 💖 for exam prep | Coquette aesthetic flashcards</p>
+            <p>Flip cards to study, use buttons to filter by category</p>
+        </footer>
+    </div>
+
+    <script>
+        // Flashcard data organized by categories
+        const flashcards = [
+            // AI & Machine Learning Basics
+            {
+                category: "ai",
+                question: "What is the key difference between supervised and unsupervised learning?",
+                answer: "Supervised learning uses labeled data with known outputs; unsupervised learning finds patterns in unlabeled data without predefined outcomes."
+            },
+            {
+                category: "ai",
+                question: "In linear regression, what does the slope (m) represent?",
+                answer: "The change in the dependent variable (y) for each one-unit increase in the independent variable (x)."
+            },
+            {
+                category: "ai",
+                question: "Name three capabilities of Artificial Neural Networks.",
+                answer: "1) Learn complex non-linear relationships, 2) Handle high-dimensional data, 3) Act as universal function approximators."
+            },
+            {
+                category: "ai",
+                question: "What are three limitations of Artificial Neural Networks?",
+                answer: "1) 'Black box' nature (poor interpretability), 2) Require large datasets, 3) Risk of overfitting."
+            },
+            {
+                category: "ai",
+                question: "What is the purpose of Principal Component Analysis (PCA)?",
+                answer: "To reduce dimensionality while preserving maximum variance, creating uncorrelated principal components."
+            },
+            {
+                category: "ai",
+                question: "When is clustering NOT needed for prediction tasks?",
+                answer: "When you have labeled data for direct prediction, known causal relationships, or need precise individual predictions rather than group assignments."
+            },
+            {
+                category: "ai",
+                question: "What does a lower Sum of Squared Errors (SSE) indicate?",
+                answer: "Better model fit (smaller total deviation between predictions and actual values)."
+            },
+            {
+                category: "ai",
+                question: "Why is SSE limited as an evaluation metric?",
+                answer: "It's sensitive to outliers and doesn't indicate the direction of errors."
+            },
+            
+            // Model Evaluation
+            {
+                category: "evaluation",
+                question: "In a confusion matrix, what is a False Negative?",
+                answer: "When an actual positive case is incorrectly predicted as negative (sick patient classified as healthy)."
+            },
+            {
+                category: "evaluation",
+                question: "What is the formula for Sensitivity (Recall)?",
+                answer: "Sensitivity = True Positives / (True Positives + False Negatives)"
+            },
+            {
+                category: "evaluation",
+                question: "In healthcare, what are potential consequences of False Negatives?",
+                answer: "Delayed treatment, disease progression, and potential fatality (e.g., malignant tumor missed in screening)."
+            },
+            {
+                category: "evaluation",
+                question: "Why does model evaluation matter specifically in healthcare?",
+                answer: "For patient safety, clinical trust, regulatory compliance, resource allocation, and ensuring equity across populations."
+            },
+            {
+                category: "evaluation",
+                question: "What is the trade-off between Sensitivity and Specificity?",
+                answer: "Increasing sensitivity typically decreases specificity, and vice versa."
+            },
+            {
+                category: "evaluation",
+                question: "What is Accuracy and its formula?",
+                answer: "Overall correctness: (TP + TN) / (TP + TN + FP + FN)"
+            },
+            {
+                category: "evaluation",
+                question: "What does Specificity measure?",
+                answer: "The ability to correctly identify negative cases: TN / (TN + FP)"
+            },
+            {
+                category: "evaluation",
+                question: "What is Precision?",
+                answer: "When predicted positive, how often it's correct: TP / (TP + FP)"
+            },
+            {
+                category: "evaluation",
+                question: "What is the F1-Score?",
+                answer: "Harmonic mean of Precision and Recall: 2 × (Precision × Recall) / (Precision + Recall)"
+            },
+            {
+                category: "evaluation",
+                question: "What is a ROC Curve?",
+                answer: "Receiver Operating Characteristic curve - plots True Positive Rate vs. False Positive Rate at various thresholds"
+            },
+            {
+                category: "evaluation",
+                question: "What does AUC represent?",
+                answer: "Area Under the ROC Curve; measures overall model performance (1 = perfect, 0.5 = random guessing)"
+            },
+            
+            // Sensors & Devices
+            {
+                category: "sensors",
+                question: "What does an accelerometer measure?",
+                answer: "Proper acceleration (change in velocity) in three axes: x (left-right), y (forward-backward), z (up-down)."
+            },
+            {
+                category: "sensors",
+                question: "What is the primary function of a gyroscope?",
+                answer: "To measure angular velocity (rotation rate)."
+            },
+            {
+                category: "sensors",
+                question: "How does Photoplethysmography (PPG) work?",
+                answer: "Uses LED light and photodetector to measure blood volume changes optically."
+            },
+            {
+                category: "sensors",
+                question: "What heart signal does an ECG measure?",
+                answer: "The electrical activity of the heart (depolarization and repolarization of chambers)."
+            },
+            {
+                category: "sensors",
+                question: "Compare Google Cardboard and Oculus Quest in terms of price and interaction.",
+                answer: "Cardboard: $10-30, basic head tracking. Quest: $300-1000, 6DOF tracking with hand controllers."
+            },
+            
+            // Digital Health Technologies
+            {
+                category: "digital",
+                question: "What does PaaS stand for and how is it used in healthcare AI?",
+                answer: "Platform as a Service - provides cloud infrastructure for model hosting, scalable computing, and collaborative healthcare AI development."
+            },
+            {
+                category: "digital",
+                question: "Name three challenges in pose detection.",
+                answer: "1) Environmental factors (lighting, clutter), 2) Occlusion (hidden body parts), 3) Camera angle limitations."
+            },
+            {
+                category: "digital",
+                question: "How can AR assist in cognitive training for dementia patients?",
+                answer: "By providing memory cues, real-world overlays with instructions, and gamified elements to increase engagement."
+            },
+            {
+                category: "digital",
+                question: "What are the benefits of using AR in rehabilitation?",
+                answer: "Contextual learning transfer, increased patient motivation, real-time feedback, and personalized difficulty adjustment."
+            },
+            
+            // LLMs & Chatbots
+            {
+                category: "llm",
+                question: "What is a Large Language Model (LLM)?",
+                answer: "A deep learning model trained on massive text datasets using transformer architecture, capable of generating human-like text."
+            },
+            {
+                category: "llm",
+                question: "Why do LLM outputs require validation in healthcare?",
+                answer: "Due to hallucinations (fabricated information), lack of medical knowledge cutoff, bias amplification, and no true causal understanding."
+            },
+            {
+                category: "llm",
+                question: "What is a key limitation of rule-based chatbots?",
+                answer: "Rigidity - they cannot handle unanticipated queries and are limited to predefined conversation flows."
+            },
+            {
+                category: "llm",
+                question: "How do AI-based chatbots differ from rule-based ones?",
+                answer: "AI chatbots are flexible and scalable but less controllable; rule-based chatbots are deterministic and transparent but limited."
+            },
+            
+            // Rehabilitation & Assistive Systems
+            {
+                category: "rehab",
+                question: "What are three uses of exoskeletons in healthcare?",
+                answer: "1) Mobility support (assisted walking), 2) Load reduction (lifting assistance), 3) Stability enhancement (fall prevention)."
+            },
+            {
+                category: "rehab",
+                question: "How can regression be used to predict recovery time?",
+                answer: "Using features like age, injury severity, and baseline function to output a continuous recovery time prediction."
+            },
+            {
+                category: "rehab",
+                question: "What advantage do ANNs have over regression for recovery prediction?",
+                answer: "ANNs can handle complex non-linear relationships and interactions between variables."
+            },
+            {
+                category: "rehab",
+                question: "What is a hybrid approach to predicting recovery time?",
+                answer: "Using ANN for feature extraction combined with regression for interpretable outputs."
+            },
+            
+            // Additional cards from your complete list
+            {
+                category: "ai",
+                question: "What are the three main ECG waveforms and what do they represent?",
+                answer: "P wave (atrial depolarization), QRS complex (ventricular depolarization), T wave (ventricular repolarization)."
+            },
+            {
+                category: "llm",
+                question: "What is RLHF in LLM training?",
+                answer: "Reinforcement Learning from Human Feedback - aligns model outputs with human values during fine-tuning."
+            },
+            {
+                category: "rehab",
+                question: "What types of exoskeletons exist based on body region?",
+                answer: "Lower limb (paraplegia), upper limb (spinal injury), and full body (severe mobility impairment)."
+            },
+            {
+                category: "llm",
+                question: "What is the attention mechanism in transformers?",
+                answer: "Weights the importance of different words in a sequence, allowing the model to focus on relevant context."
+            },
+            {
+                category: "sensors",
+                question: "How are accelerometers used in healthcare applications?",
+                answer: "Fall detection, activity monitoring, and gait analysis."
+            },
+            {
+                category: "sensors",
+                question: "What healthcare applications use gyroscopes?",
+                answer: "Head movement tracking in VR therapy and posture correction systems."
+            },
+            {
+                category: "sensors",
+                question: "How is PPG used clinically?",
+                answer: "Heart rate monitoring and oxygen saturation (with multiple wavelengths)."
+            },
+            {
+                category: "digital",
+                question: "What are clinical uses of VR devices like Oculus Quest?",
+                answer: "Advanced rehabilitation, surgical training, and pain management."
+            }
+        ];
+
+        // App state
+        let currentCardIndex = 0;
+        let filteredCards = [...flashcards];
+        let currentCategory = "all";
+        
+        // DOM elements
+        const flashcardElement = document.getElementById('flashcard');
+        const questionElement = document.getElementById('question');
+        const answerElement = document.getElementById('answer');
+        const categoryTagElement = document.getElementById('categoryTag');
+        const categoryTagBackElement = document.getElementById('categoryTagBack');
+        const currentCardElement = document.getElementById('currentCard');
+        const totalCardsElement = document.getElementById('totalCards');
+        const progressElement = document.getElementById('progress');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const categoryBtns = document.querySelectorAll('.category-btn');
+        
+        // Initialize
+        function init() {
+            totalCardsElement.textContent = filteredCards.length;
+            updateCard();
+            updateProgress();
+            
+            // Add event listeners
+            flashcardElement.addEventListener('click', flipCard);
+            prevBtn.addEventListener('click', showPrevCard);
+            nextBtn.addEventListener('click', showNextCard);
+            
+            // Add category filter listeners
+            categoryBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const category = btn.getAttribute('data-category');
+                    filterCards(category);
+                    
+                    // Update active button
+                    categoryBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                });
+            });
+            
+            // Add keyboard navigation
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowLeft') showPrevCard();
+                if (e.key === 'ArrowRight') showNextCard();
+                if (e.key === ' ' || e.key === 'Enter') {
+                    e.preventDefault();
+                    flipCard();
+                }
+            });
+        }
+        
+        // Flip card animation
+        function flipCard() {
+            flashcardElement.classList.toggle('flipped');
+        }
+        
+        // Update card content
+        function updateCard() {
+            const card = filteredCards[currentCardIndex];
+            questionElement.textContent = card.question;
+            answerElement.textContent = card.answer;
+            
+            // Format category name for display
+            const categoryNames = {
+                "ai": "AI & ML Basics",
+                "evaluation": "Model Evaluation",
+                "sensors": "Sensors & Devices",
+                "digital": "Digital Health",
+                "llm": "LLMs & Chatbots",
+                "rehab": "Rehabilitation"
+            };
+            
+            const categoryName = categoryNames[card.category] || card.category;
+            categoryTagElement.textContent = categoryName;
+            categoryTagBackElement.textContent = categoryName;
+            
+            currentCardElement.textContent = currentCardIndex + 1;
+            
+            // Reset card to front side
+            flashcardElement.classList.remove('flipped');
+        }
+        
+        // Update progress bar
+        function updateProgress() {
+            const progress = ((currentCardIndex + 1) / filteredCards.length) * 100;
+            progressElement.style.width = `${progress}%`;
+        }
+        
+        // Show next card
+        function showNextCard() {
+            if (currentCardIndex < filteredCards.length - 1) {
+                currentCardIndex++;
+                updateCard();
+                updateProgress();
+            }
+        }
+        
+        // Show previous card
+        function showPrevCard() {
+            if (currentCardIndex > 0) {
+                currentCardIndex--;
+                updateCard();
+                updateProgress();
+            }
+        }
+        
+        // Filter cards by category
+        function filterCards(category) {
+            currentCategory = category;
+            
+            if (category === "all") {
+                filteredCards = [...flashcards];
+            } else {
+                filteredCards = flashcards.filter(card => card.category === category);
+            }
+            
+            // Reset to first card
+            currentCardIndex = 0;
+            totalCardsElement.textContent = filteredCards.length;
+            updateCard();
+            updateProgress();
+        }
+        
+        // Category color mapping for visual variety
+        function getCategoryColor(category) {
+            const colors = {
+                "ai": "#FD7979",
+                "evaluation": "#FF9A8B",
+                "sensors": "#FDACAC",
+                "digital": "#FFCDC9",
+                "llm": "#FFB7C5",
+                "rehab": "#FEEAC9"
+            };
+            return colors[category] || "#FD7979";
+        }
+        
+        // Initialize the app
+        init();
+    </script>
+</body>
+</html>
